@@ -1,0 +1,21 @@
+`include "lab00_DLatch.vl"
+
+module DFlipFlop_m(
+
+	input  wire E	,
+	input  wire D	,
+
+	output wire OUT
+
+);
+	
+	wire masterE;
+	wire masterOut;
+
+	assign masterE = ~E;
+
+
+	DLatch_m Master (.E (masterE), .D (D        ), .OUT (masterOut));
+	DLatch_m Slave  (.E (E      ), .D (masterOut), .OUT (OUT));
+
+endmodule

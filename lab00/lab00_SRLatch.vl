@@ -1,0 +1,12 @@
+module SRLatch_m(
+
+	input  wire R	,
+	input  wire S	,
+
+	output wire OUT
+	
+);
+
+	assign OUT = ~R && (S || OUT);
+
+endmodule

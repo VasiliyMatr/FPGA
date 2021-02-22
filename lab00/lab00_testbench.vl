@@ -1,0 +1,33 @@
+`include "lab00_DFF.vl"
+`timescale 1ns / 100ps
+
+module testbench ();
+
+	reg clk = 1'b0;
+	reg signal = 1'b1;
+
+	always begin
+		#1 clk = ~clk;
+	end
+
+	always begin
+		#1.5 signal = ~signal;
+	end
+
+	wire out;
+
+	DFlipFlop_m DFF(.D (signal), .E (clk), .OUT (OUT));
+
+	initial begin
+
+		$dumpvars;
+		$display ("Testing...");
+		#10 $finish;
+
+	end
+
+endmodule
+
+
+
+

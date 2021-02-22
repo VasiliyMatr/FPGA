@@ -1,0 +1,21 @@
+`include "lab00_SRLatch.vl"
+
+module DLatch_m(
+
+	input  wire D	,
+	input  wire E	,
+
+	output wire OUT
+
+);
+
+	wire srLatchS;
+	wire srLatchR;
+
+
+	assign srLatchS = D && E;
+	assign srLatchR =~D && E;
+
+	SRLatch_m SRLatch (.R (srLatchR), .S (srLatchS), .OUT (OUT));	
+
+endmodule
