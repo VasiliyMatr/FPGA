@@ -1,5 +1,5 @@
 `include "lab00_DFF.vl"
-`timescale 1ns / 100ps
+`timescale 1ns / 10ps
 
 module testbench ();
 
@@ -11,18 +11,19 @@ module testbench ();
 	end
 
 	always begin
-		#1.5 signal = ~signal;
+		#3.1415926535 signal = ~signal;
 	end
 
 	wire out;
+	wire xout;
 
-	DFlipFlop_m DFF(.D (signal), .E (clk), .OUT (OUT));
+	DFlipFlop_m DFF(.D (signal), .E (clk), .OUT (out), .XOUT (xout));
 
 	initial begin
 
 		$dumpvars;
 		$display ("Testing...");
-		#10 $finish;
+		#200 $finish;
 
 	end
 

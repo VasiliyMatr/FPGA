@@ -2,10 +2,11 @@
 
 module DFlipFlop_m(
 
-	input  wire E	,
-	input  wire D	,
+	input  wire E		,
+	input  wire D		,
 
-	output wire OUT
+	output wire OUT		,
+	output wire XOUT
 
 );
 	
@@ -16,6 +17,6 @@ module DFlipFlop_m(
 
 
 	DLatch_m Master (.E (masterE), .D (D        ), .OUT (masterOut));
-	DLatch_m Slave  (.E (E      ), .D (masterOut), .OUT (OUT));
+	DLatch_m Slave  (.E (E      ), .D (masterOut), .OUT (OUT), .XOUT(XOUT));
 
 endmodule

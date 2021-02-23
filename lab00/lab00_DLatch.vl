@@ -2,10 +2,11 @@
 
 module DLatch_m(
 
-	input  wire D	,
-	input  wire E	,
+	input  wire D		,
+	input  wire E		,
 
-	output wire OUT
+	output wire OUT		,
+	output wire XOUT
 
 );
 
@@ -16,6 +17,6 @@ module DLatch_m(
 	assign srLatchS = D && E;
 	assign srLatchR =~D && E;
 
-	SRLatch_m SRLatch (.R (srLatchR), .S (srLatchS), .OUT (OUT));	
+	SRLatch_m SRLatch (.R (srLatchR), .S (srLatchS), .OUT (OUT), .XOUT(XOUT));	
 
 endmodule
