@@ -1,4 +1,4 @@
-`include "lab00_SRLatch.vl"
+`include "SRLatch.v"
 
 module DLatch_m(
 

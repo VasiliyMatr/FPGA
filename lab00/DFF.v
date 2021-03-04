@@ -1,4 +1,4 @@
-`include "lab00_DLatch.vl"
+`include "DLatch.v"
 
 module DFlipFlop_m(
 

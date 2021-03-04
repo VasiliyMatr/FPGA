@@ -1,4 +1,4 @@
-`include "lab00_DFF.vl"
+`include "DFF.v"
 `timescale 1ns / 10ps
 
 module testbench ();
