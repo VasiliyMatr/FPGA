@@ -1,87 +1,66 @@
 `include "DisplayMaster.v"
-`include "Counter16Bit.v"
+`include "Counter.v"
 `include "FreqDivider.v"
+
+`define LESS_COUNT_DISPLAYABLE_BIT 15
 
 /* just main module
  *
  */
 
 module top(
-    input CLK,
+    input  wire CLK,
 
 /* displays on/off pins */
-	output DS_EN1, DS_EN2, DS_EN3, DS_EN4,
+	output reg DS_EN1, DS_EN2, DS_EN3, DS_EN4,
 /* displays diods on/off pins */
-    output DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G
+    output reg DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G
 );
 
-/* freq div coeffs */
-    reg [31:0]  dispChangeFreqDivider   = 32'h8000; // 32'h8000;  - value for real device
-    reg [31:0]  counterFreqDivider      = 32'h10000; // 32'h10000; - value for real device
+/* sys ticks counter */
+    `COUNTER (CLK, 40, counterVal)
 
-/* div freq clk */
-    wire        dispDivClk;
-    wire        countDivClk;
-
-/* output number */
-    wire [15:0] counterValue;
+/* clk for display */
+    wire         dispClk  = counterVal [12];
 
 /* digits to show */
-    wire [6:0]   digit1;
-    wire [6:0]   digit2;
-    wire [6:0]   digit3;
-    wire [6:0]   digit4;
-
-/* freq dividers */
-    FreqDivider     dispDivider     (.clk (CLK), .counterInitVal (dispChangeFreqDivider) , .divClk (dispDivClk));
-    FreqDivider     cntDivider      (.clk (CLK), .counterInitVal (counterFreqDivider)    , .divClk (countDivClk));
-
-/* counter for output value */
-    Counter16Bit    counter         (.clk (countDivClk), .value (counterValue));
+    wire [6:0]   digit1, digit2, digit3, digit4;
 
 /* displays masters */
-    DisplayMaster   masterOf1Digit  (.number (counterValue [3:0])    , .displayMask (digit1));
-    DisplayMaster   masterOf2Digit  (.number (counterValue [7:4])    , .displayMask (digit2));
-    DisplayMaster   masterOf3Digit  (.number (counterValue [11:8])   , .displayMask (digit3));
-    DisplayMaster   masterOf4Digit  (.number (counterValue [15:12])  , .displayMask (digit4));
+    DisplayMaster   masterOf1Digit  (.number (counterVal [3  + `LESS_COUNT_DISPLAYABLE_BIT :      `LESS_COUNT_DISPLAYABLE_BIT])  , .displayMask (digit1));
+    DisplayMaster   masterOf2Digit  (.number (counterVal [7  + `LESS_COUNT_DISPLAYABLE_BIT : 4  + `LESS_COUNT_DISPLAYABLE_BIT])  , .displayMask (digit2));
+    DisplayMaster   masterOf3Digit  (.number (counterVal [11 + `LESS_COUNT_DISPLAYABLE_BIT : 8  + `LESS_COUNT_DISPLAYABLE_BIT])  , .displayMask (digit3));
+    DisplayMaster   masterOf4Digit  (.number (counterVal [15 + `LESS_COUNT_DISPLAYABLE_BIT : 12 + `LESS_COUNT_DISPLAYABLE_BIT])  , .displayMask (digit4));
 
-/* masks to on/off diods and displays */
-    reg [6:0]   diodsMask   = 0;
-    reg [3:0]   digitsMask  = 4'b1101;
+/* operating display id */
+    reg  [1:0]   dispId = 0;
 
 /* main cycles */
 
-        always @(posedge dispDivClk) begin
+        always @(posedge dispClk) begin
+            dispId <= dispId + 1;
+        end
 
-            case (digitsMask)
+        always @(*) begin
+            case (dispId)
 
-                4'b1110: digitsMask  <= 4'b1101;
-                4'b1101: digitsMask  <= 4'b1011;
-                4'b1011: digitsMask  <= 4'b0111;
-                4'b0111: digitsMask  <= 4'b1110;
+                2'b00: {DS_EN1, DS_EN2, DS_EN3, DS_EN4}  = 4'b1101;
+                2'b01: {DS_EN1, DS_EN2, DS_EN3, DS_EN4}  = 4'b1011;
+                2'b10: {DS_EN1, DS_EN2, DS_EN3, DS_EN4}  = 4'b0111;
+                2'b11: {DS_EN1, DS_EN2, DS_EN3, DS_EN4}  = 4'b1110;
 
             endcase
         end
 
-        always @(posedge dispDivClk) begin
+        always @(*) begin
+            case (dispId)
 
-            // #5 /* wait for digitsMask assignation */
-
-            case (digitsMask)
-
-                4'b1110: diodsMask <= digit2;
-                4'b1101: diodsMask <= digit3;
-                4'b1011: diodsMask <= digit4;
-                4'b0111: diodsMask <= digit1;
+                2'b00: {DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G} = digit2;
+                2'b01: {DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G} = digit3;
+                2'b10: {DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G} = digit4;
+                2'b11: {DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G} = digit1;
                 
             endcase
-
         end
-
-/* end of main cycles */
-
-/* outputs assignation */
-    assign {DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G}   = diodsMask;
-    assign {DS_EN1, DS_EN2, DS_EN3, DS_EN4}             = digitsMask;
 
 endmodule
