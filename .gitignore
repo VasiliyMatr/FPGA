@@ -1,5 +1,7 @@
 *.qpf
 *.qsf
+*.qip
+*.qws
 *.bak
 db
 incremental_db
