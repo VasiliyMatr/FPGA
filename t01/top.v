@@ -1,6 +1,5 @@
 `include "DisplayMaster.v"
 `include "Counter.v"
-`include "FreqDivider.v"
 
 `define LESS_COUNT_DISPLAYABLE_BIT 15
 
