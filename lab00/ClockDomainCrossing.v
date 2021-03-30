@@ -62,38 +62,47 @@ module CDCHandler #(
         always @(posedge clkA) begin acknowlege [1] <= acknowlege [2];  end
 
     /* A domain */
-        /* if there is new data and A domain part is ready to receive data */
-            always @(posedge send) begin
-                if (ready) dataA <= inData; /* getting new data to transmit */
+            /* dataA driver */
+            always @(clkA) begin
+                /* if there is new data and A domain part is ready to receive data */
+                if (send && ready)
+                    dataA <= inData;
             end
-            always @(posedge send) begin
-                ready <= 0; /* ready flag is now zero */
-            end
-            always @(posedge send) begin
-                if (ready) enable [2] <= 1; /* enable flag is now 1 */
+            /* ready driver */
+            always @(clkA) begin
+                /* if there is new data and A domain part is ready to receive data */
+                if (send && ready)
+                    ready <= 0;
+                /* if all system is ready */
+                else if (~acknowlege [0] && ~enable [2])
+                    ready <= 1;
             end
 
-        /* if A domain part received acknowlege signal */
-            always @(posedge acknowlege [0]) begin
-                enable [2] <= 0; /* now enable flag is 0 */
-            end
-
-        /* if A domain part received acknowlege signal negedge */
-            always @(negedge acknowlege [0]) begin
-                ready <= 1; /* ready for next data transmit */
+            /* enable driver */
+            always @(clkA) begin
+                /* if there is new data and A domain part is ready to receive data */
+                if (send && ready)
+                    enable [2] <= 1;
+                /* if A domain part received acknowlege signal */
+                else if (acknowlege [0])
+                    enable [2] <= 0;
             end
 
     /* B domain */
-        /* if B domain part receive cmd to read data */
-            always @(posedge enable [0]) begin
-                dataB     <= dataA; /* writing new data to B domain part */       
+        /* dataB driver */
+            always @(posedge clkB) begin
+                /* if B domain part receive cmd to read data */
+                if (enable [0] && ~acknowlege [2])
+                    dataB <= dataA;      
             end
-            always @(posedge enable [0]) begin
-                acknowlege  [2] <= 1; /* acknowlege flag in now 1 */
-            end
-        /* if B domain part should drop acknowlege */
-            always @(negedge enable [0]) begin
-                acknowlege  [2] <= 0; /* acknowlege is now 0 */
+        /* acknowlege driver */
+            always @(posedge clkB) begin
+                /* if we got enable */
+                if (enable [0] && ~acknowlege [2])
+                    acknowlege  [2] <= 1;
+                /* if B domain part should drop acknowlege */
+                else if (acknowlege [2] && enable [0])
+                    acknowlege  [2] <= 0;
             end
 
 endmodule
