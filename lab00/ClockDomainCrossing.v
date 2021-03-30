@@ -43,12 +43,12 @@ module CDCHandler #(
         initial begin
             enable          = 03'b0;
             acknowlege      = 03'b0;
-            dataA           = 16'b0;
-            ready           = 01'b0;
+            dataA           = 02'b0;
+            ready           = 01'b1;
 
-            dataB           = 16'b0;
+            dataB           = 02'b0;
 
-            out             = 16'b0;
+            out             = 01'b0;
         end
 
     /* for no errors with metastability */
@@ -101,7 +101,7 @@ module CDCHandler #(
                 if (enable [0] && ~acknowlege [2])
                     acknowlege  [2] <= 1;
                 /* if B domain part should drop acknowlege */
-                else if (acknowlege [2] && enable [0])
+                else if (acknowlege [2] && ~enable [0])
                     acknowlege  [2] <= 0;
             end
 
