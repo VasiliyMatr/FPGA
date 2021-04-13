@@ -23,33 +23,46 @@ module CDCHandler #(
 
     /* B domain inputs */
         input wire  clkB                        ,
+    /* Acknowlege input - from external B domain data reader */
+        input wire  acknIn                      ,
 
     /* B domain outputs (clocked with clkB) */
-        output reg  [DATA_SIZE_ - 1:0] out
+        output reg  [DATA_SIZE_ - 1:0] out      ,
+    /* Enable out - for external B domain data reader */
+        output wire enOut
 
 );
 
+/* There is extra registers for metastabiliy errors fix */
+
     /* internal flags */
         /* read enable flag for B domain */
-        reg [2:0] enable;
+        reg enable     [2:0];
         /* acknowlege flag  for A domain*/
-        reg [2:0] acknowlege;
+        reg acknowlege [2:0];
 
     /* domains data registers */
         reg [DATA_SIZE_ - 1:0] dataA;
         reg [DATA_SIZE_ - 1:0] dataB;
 
-    /* all registers init */
+    /* all inits */
         initial begin
-            enable          = 03'b0;
-            acknowlege      = 03'b0;
-            dataA           = 02'b0;
+            enable [0]      = 01'b0;
+            enable [1]      = 01'b0;
+            enable [2]      = 01'b0;
+
+            acknowlege [0]  = 01'b0;
+            acknowlege [1]  = 01'b0;
+            acknowlege [2]  = 01'b0;
+
+            dataA           = DATA_SIZE_ - 1 'b0;
+            dataB           = DATA_SIZE_ - 1 'b0;
+
             ready           = 01'b1;
-
-            dataB           = 02'b0;
-
             out             = 01'b0;
         end
+
+        assign enOut = enable [0];
 
     /* for no errors with metastability */
         always @(posedge clkB) begin out <= dataB;                      end
@@ -60,6 +73,7 @@ module CDCHandler #(
 
         always @(posedge clkA) begin acknowlege [0] <= acknowlege [1];  end
         always @(posedge clkA) begin acknowlege [1] <= acknowlege [2];  end
+        always @(posedge clkA) begin acknowlege [2] <= acknIn;          end
 
     /* A domain */
             /* dataA driver */
@@ -94,15 +108,6 @@ module CDCHandler #(
                 /* if B domain part receive cmd to read data */
                 if (enable [0] && ~acknowlege [2])
                     dataB <= dataA;      
-            end
-        /* acknowlege driver */
-            always @(posedge clkB) begin
-                /* if we got enable */
-                if (enable [0] && ~acknowlege [2])
-                    acknowlege  [2] <= 1;
-                /* if B domain part should drop acknowlege */
-                else if (acknowlege [2] && ~enable [0])
-                    acknowlege  [2] <= 0;
             end
 
 endmodule

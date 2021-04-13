@@ -38,13 +38,24 @@ module top(
 
 /* ready wire */
     wire ready;
+/* read enable signal */
+    wire enable;
+/* ackn signal */
+    reg  acknowlege = 1'b0;
 
 /* CDCHandler out */
     wire [15:0]  outGrey;
 
-	CDCHandler #(.DATA_SIZE_(16)) handler  (.clkA   (clkA)	  , .clkB (clkB) ,
-											.inData (greyNum) , .send (counterVal [`MEM_CLK_BIT_ - 4]) ,
-											.ready  (ready)   , .out  (outGrey));
+	CDCHandler #(.DATA_SIZE_(16)) handler  (.clkA   (clkA)	        , .clkB (clkB) ,
+											.inData (greyNum)       , .send (counterVal [`MEM_CLK_BIT_ - 6]) ,
+											.ready  (ready)         , .out  (outGrey),
+                                            .acknIn (acknowlege)    , .enOut(enable));
+
+    always @(enable) begin
+
+        acknowlege <= enable;
+        
+    end
 
 /* clk for display */
     wire         dispClk  = counterVal [12];
