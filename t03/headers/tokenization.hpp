@@ -64,7 +64,9 @@ const keywordInfo_t KEYS_[] = {
     { keywordId_t::CMD_CMP_, "CMP" },
     { keywordId_t::CMD_JMP_, "JMP" },
     { keywordId_t::CMD_JEQ_, "JEQ" },
-    { keywordId_t::CMD_JGG_, "JGG" }
+    { keywordId_t::CMD_JGG_, "JGG" },
+
+    { keywordId_t::TR_LABEL_, ":"  }
 };
 
 /* number of commands */

@@ -1,6 +1,23 @@
 
 #include "compiler.hpp"
 
+Compiler::Compiler() { }
+
+Compiler::~Compiler()
+{
+    if (codeP_ != nullptr)
+    {
+        free (codeP_);
+        codeP_ = nullptr;
+    }
+
+    if (tokensP_ != nullptr)
+    {
+        free (tokensP_);
+        tokensP_ = nullptr;
+    }
+}
+
 err_t Compiler::compile ( const char* const inNameP,
                           const char* const outNameP )
 {

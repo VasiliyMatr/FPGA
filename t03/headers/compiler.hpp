@@ -22,6 +22,16 @@ class Compiler
   /* methods */
   public:
 
+  /* default ctor */
+    Compiler();
+
+  /* to free all memory */
+   ~Compiler();
+
+  /* deleted stuff */
+   Compiler( const Compiler& toCpy ) = delete;
+   Compiler operator=( const Compiler& rVal ) = delete; 
+
   /* compile file */
     err_t compile( const char* const inNameP,
                    const char* const outNameP );
