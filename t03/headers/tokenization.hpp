@@ -43,6 +43,16 @@ enum class keywordId_t
     /* terminal symbol for labels */
     TR_LABEL_       = 'L',
 
+    R00_            = 0xff,
+    R01_, R02_, R03_, R04_,
+    R05_, R06_, R07_, R08_,
+    R09_, R0A_, R0B_, R0C_,
+    R0D_, R0E_, R0F_, R10_,
+    R11_, R12_, R13_, R14_,
+    R15_, R16_, R17_, R18_,
+    R19_, R1A_, R1B_, R1C_,
+    R1D_, R1E_, R1F_,
+
     /* undefined cmd */
     UNDEF_KEYW_     = 'U'
 };
@@ -66,7 +76,42 @@ const keywordInfo_t KEYS_[] = {
     { keywordId_t::CMD_JEQ_, "JEQ" },
     { keywordId_t::CMD_JGG_, "JGG" },
 
-    { keywordId_t::TR_LABEL_, ":"  }
+    { keywordId_t::TR_LABEL_, ":"  },
+
+    { keywordId_t::R00_, "R00" },
+    { keywordId_t::R01_, "R01" },
+    { keywordId_t::R02_, "R02" },
+    { keywordId_t::R03_, "R03" },
+    { keywordId_t::R04_, "R04" },
+    { keywordId_t::R05_, "R05" },
+    { keywordId_t::R06_, "R06" },
+    { keywordId_t::R07_, "R07" },
+    { keywordId_t::R08_, "R08" },
+    { keywordId_t::R09_, "R09" },
+    { keywordId_t::R0A_, "R0A" },
+    { keywordId_t::R0B_, "R0B" },
+    { keywordId_t::R0C_, "R0C" },
+    { keywordId_t::R0D_, "R0D" },
+    { keywordId_t::R0E_, "R0E" },
+    { keywordId_t::R0F_, "R0F" },
+
+    { keywordId_t::R10_, "R10" },
+    { keywordId_t::R11_, "R11" },
+    { keywordId_t::R12_, "R12" },
+    { keywordId_t::R13_, "R13" },
+    { keywordId_t::R14_, "R14" },
+    { keywordId_t::R15_, "R15" },
+    { keywordId_t::R16_, "R16" },
+    { keywordId_t::R17_, "R17" },
+    { keywordId_t::R18_, "R18" },
+    { keywordId_t::R19_, "R19" },
+    { keywordId_t::R1A_, "R1A" },
+    { keywordId_t::R1B_, "R1B" },
+    { keywordId_t::R1C_, "R1C" },
+    { keywordId_t::R1D_, "R1D" },
+    { keywordId_t::R1E_, "R1E" },
+    { keywordId_t::R1F_, "R1F" }
+
 };
 
 /* number of commands */

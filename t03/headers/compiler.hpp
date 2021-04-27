@@ -6,14 +6,41 @@
 
 class Compiler
 {
+  /* data types & consts */
+  private:
+
+  /* poison value for token id's */
+    static const int BAD_TOKEN_ID_ = -1;
+  /* maximum number of labels in one asm file */
+    static const size_t LABELS_MAX_NUM_ = 0x400;
+
+  /* to store labels info */
+    struct label_t
+    {
+        int tokenId_        = BAD_TOKEN_ID_;
+        size_t binOffset_   = 0;
+    };
+
+  /* fixed size numbers for binary buffer */
+  typedef int binType;
 
   /* fields */
   private:
 
   /* buffer with code */
     char * codeP_ = nullptr;
-  /* tokens massive */
+  /* binary output stuff */
+    /* buffer with output binary code */
+    binType * binCodeP_ = nullptr;
+    /* number of used binType numbers */
+    size_t binSize_ = 0;
+  /* tokens stuff */
+    /* tokens massive */
     token_t * tokensP_  = nullptr;
+    /* num of tokens */
+    size_t tokNum_ = 0;
+  /* for all labels */
+    label_t labelsP_ [LABELS_MAX_NUM_];
 
   /* compile error info */
     err_t compileError_                     = err_t::OK_;
@@ -40,6 +67,18 @@ class Compiler
 
   /* func to tokenize code */
     err_t tokenize();
+
+  /* func to assemble code */
+    err_t assemble();
+
+  /* func to make first pass */
+    err_t firstPass();
+
+  /* func to find label */
+    int getLabel( tokenLocation_t nameP );
+
+  /* names cmp */
+    int nameCmp( tokenLocation_t ftNameP, tokenLocation_t sdNameP );
 
 };
 

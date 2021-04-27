@@ -128,6 +128,7 @@ err_t Compiler::tokenize ()
         }
 
         tokensP_ [tokId] = newToken;
+        tokNum_ = tokId + 1;
 
         return err_t::OK_;
     }
