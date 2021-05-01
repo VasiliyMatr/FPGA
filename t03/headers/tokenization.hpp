@@ -25,7 +25,7 @@ enum class keywordId_t : unsigned char
 {
     /* to move data */
     CMD_MOV_        = 'M',
-    
+
     /* to add data */
     CMD_ADD_        = 'A',
 
