@@ -21,17 +21,14 @@ enum class tokenType_t
 };
 
 /* keywords identifiers enum */
-enum class keywordId_t
+enum class keywordId_t : unsigned char
 {
     /* to move data */
     CMD_MOV_        = 'M',
     
     /* to add data */
     CMD_ADD_        = 'A',
-    
-    /* to dump specified registers */
-    CMD_DMP_        = 'D',
-    
+
     /* to make comparsion */
     CMD_CMP_        = 'C',
 
@@ -41,9 +38,11 @@ enum class keywordId_t
         CMD_JGG_    = 'G',
 
     /* terminal symbol for labels */
-    TR_LABEL_       = 'L',
+    TR_LABEL_       = ':',
+    TR_LBR_         = '[',
+    TR_RBR_         = ']',
 
-    R00_            = 0xff,
+    R00_            = 0x80,
     R01_, R02_, R03_, R04_,
     R05_, R06_, R07_, R08_,
     R09_, R0A_, R0B_, R0C_,
@@ -68,15 +67,16 @@ struct keywordInfo_t
 
 /* all keywords massive */
 const keywordInfo_t KEYS_[] = {
-    { keywordId_t::CMD_MOV_, "MOV" },
-    { keywordId_t::CMD_ADD_, "ADD" },
-    { keywordId_t::CMD_DMP_, "DMP" },
-    { keywordId_t::CMD_CMP_, "CMP" },
-    { keywordId_t::CMD_JMP_, "JMP" },
-    { keywordId_t::CMD_JEQ_, "JEQ" },
-    { keywordId_t::CMD_JGG_, "JGG" },
+    { keywordId_t::CMD_MOV_ , "MOV" },
+    { keywordId_t::CMD_ADD_ , "ADD" },
+    { keywordId_t::CMD_CMP_ , "CMP" },
+    { keywordId_t::CMD_JMP_ , "JMP" },
+    { keywordId_t::CMD_JEQ_ , "JEQ" },
+    { keywordId_t::CMD_JGG_ , "JGG" },
 
     { keywordId_t::TR_LABEL_, ":"  },
+    { keywordId_t::TR_LBR_  , "["  },
+    { keywordId_t::TR_RBR_  , "]"  },
 
     { keywordId_t::R00_, "R00" },
     { keywordId_t::R01_, "R01" },

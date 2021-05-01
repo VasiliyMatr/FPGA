@@ -88,6 +88,7 @@ err_t Compiler::tokenize ()
             /* sequence get success! */
             if (localShift != 0)
             {
+                /* Hash table can be used here for speed */
                 for (size_t cmdId = 0; cmdId < CMD_NUM_; ++cmdId)
                 {
                     if (!strcmp (KEYS_ [cmdId].name_, name))

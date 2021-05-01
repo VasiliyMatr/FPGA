@@ -9,10 +9,12 @@ class Compiler
   /* data types & consts */
   private:
 
-  /* poison value for token id's */
+  /* poison value for token ids */
     static const int BAD_TOKEN_ID_ = -1;
   /* maximum number of labels in one asm file */
     static const size_t LABELS_MAX_NUM_ = 0x400;
+  /* poison value for registers ids */
+    static const int BAD_REG_ID_ = -1;
 
   /* to store labels info */
     struct label_t
@@ -73,6 +75,18 @@ class Compiler
 
   /* func to make first pass */
     err_t firstPass();
+
+  /* to parse mov */
+    /* masks */
+    static const int ARG_NUM_MASK_ = 0x100;
+    static const int ARG_MEM_MASK_ = 0x200;
+
+    static const int ARG_ERR_MASK_ = 0x400;
+
+    int parseMov( token_t const * args, size_t * offset, int * number );
+
+  /* to get register id from token */
+    int getRegId( token_t token );
 
   /* func to find label */
     int getLabel( tokenLocation_t nameP );

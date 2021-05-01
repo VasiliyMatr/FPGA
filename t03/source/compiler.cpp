@@ -66,74 +66,146 @@ err_t Compiler::assemble()
         switch (tok.type_)
         {
             case tokenType_t::NUM_:
+
+            {
                 free (binCodeP_);
                 return err_t::SYNT_ERR_;
+            }
 
             case tokenType_t::KEYWORD_:
+
+            {
                 switch (tok.data_.keywordId_)
                 {
                     case keywordId_t::CMD_ADD_:
+
                     {
-                        token_t ftArg = tokensP_ [++tokId];
-                        token_t sdArg = tokensP_ [++tokId];
+                        /* there should be 3 registers */
+                        int ftArgId = getRegId (tokensP_ [++tokId]);
+                        int sdArgId = getRegId (tokensP_ [++tokId]);
 
-                        if (ftArg.type_ == tokenType_t::KEYWORD_ &&
-                            sdArg.type_ == tokenType_t::KEYWORD_)
+                        int destId  = getRegId (tokensP_ [++tokId]);
+
+                        if (ftArgId != BAD_REG_ID_ &&
+                            sdArgId != BAD_REG_ID_ &&
+                            destId  != BAD_REG_ID_)
                         {
-                            int ftReg = (int)ftArg.data_.keywordId_;
-                            int sdReg = (int)sdArg.data_.keywordId_;
+                            binCodeP_ [binShift++] = (char)keywordId_t::CMD_ADD_ +
+                            (ftArgId << 8) + (sdArgId << 16) + (destId << 24);
 
-                            if (ftReg >  (int)keywordId_t::R00_ &&
-                                ftReg <= (int)keywordId_t::R1F_)
-                            if (sdReg >  (int)keywordId_t::R00_ &&
-                                sdReg <= (int)keywordId_t::R1F_)
-
-                            {
-                                binCodeP_
-                            }
+                            break;
                         }
+
+                        free (binCodeP_);
+                        return err_t::SYNT_ERR_;
+                    }
+                    break;
+
+                    case keywordId_t::CMD_MOV_:
+
+                    {
+                        size_t tokOffset = 0;
+                        int ftNum = 0;
+                        int sdNum = 0;
+
+                        int ftArg = parseMov (tokensP_ + (++tokId), &tokOffset, &ftNum);
+                        int sdArg = 0;
+
+                        tokId += tokOffset;
+
+                        sdArg = parseMov (tokensP_ + tokId, &tokOffset, &sdNum);
+
+                        if ((ftArg & ARG_ERR_MASK_) || (sdArg & ARG_ERR_MASK_) || 
+                            ((ftArg & ARG_NUM_MASK_) && !(ftArg & ARG_MEM_MASK_)))
+                        {
+                            free (binCodeP_);
+                            return err_t::SYNT_ERR_;
+                        }
+
+                        tokId += tokOffset - 1;
+
+                        binCodeP_ [binShift++] = (char) keywordId_t::CMD_MOV_ +
+                                                 (ftArg << 8) + (sdArg << 20);
+
+                        binCodeP_ [binShift++] = ftNum;
+                        binCodeP_ [binShift++] = sdNum;
                     }
                     break;
 
                     case keywordId_t::CMD_CMP_:
-                    case keywordId_t::CMD_MOV_:
-                    {
 
-                    }
-                    break;
-                    
-                    case keywordId_t::CMD_DMP_:
                     {
+                        /* there should be 2 registers */
+                        int ftArgId = getRegId (tokensP_ [++tokId]);
+                        int sdArgId = getRegId (tokensP_ [++tokId]);
 
+                        if (ftArgId != BAD_REG_ID_ &&
+                            sdArgId != BAD_REG_ID_)
+                        {
+                            binCodeP_ [binShift++] = (char)tok.data_.keywordId_ +
+                            (ftArgId << 8) + (sdArgId << 16);
+
+                            break;
+                        }
+
+                        free (binCodeP_);
+                        return err_t::SYNT_ERR_;
                     }
                     break;
 
                     case keywordId_t::CMD_JEQ_:
                     case keywordId_t::CMD_JMP_:
                     case keywordId_t::CMD_JGG_:
-                    {
 
+                    {
+                        token_t arg = tokensP_ [++tokId];
+
+                        if (arg.type_ == tokenType_t::IDENT_)
+                        {
+                            int labelId = getLabel (arg.location_);
+
+                            if (labelId != BAD_TOKEN_ID_)
+                            {
+                                binCodeP_ [binShift++] = (char)tok.data_.keywordId_;
+                                binCodeP_ [binShift++] = labelsP_[labelId].binOffset_ + 1 - binShift;
+
+                                break;
+                            }
+                        }
+
+                        free (binCodeP_);
+                        return err_t::SYNT_ERR_;
                     }
                     break;
                     
                     default:
+
+                    {
                         free (binCodeP_);
                         return err_t::SYNT_ERR_;
+                    }
                 }
+            }
+            break;
 
-                break;
+            case tokenType_t::IDENT_:
 
-            case IDENT_:
-               if (data->tokens_[++tok_id].type   == TERM_ &&
-                  (data->tokens_[tok_id  ].id     == TR_PROC_ ||
-                   data->tokens_[tok_id  ].id     == TR_LABL_))
-                   break;
+            {
+                token_t nextTok = tokensP_ [++tokId];
 
-                free (binCode);
-                return SYNT_ERR;
+                if (nextTok.type_ == tokenType_t::KEYWORD_ &&
+                    nextTok.data_.keywordId_ == keywordId_t::TR_LABEL_)
+                    break;
+
+                free (binCodeP_);
+                return err_t::SYNT_ERR_;
+            }
+            break;
         }
-
     }
+
+    binSize_ = binShift;
+    return err_t::OK_;
 }
 
 err_t Compiler::firstPass()
@@ -145,15 +217,13 @@ err_t Compiler::firstPass()
 
     token_t tok = tokensP_[0];
 
-    for (; tok.type_ != tokenType_t::UNDF_T_; ++tokId)
+    for (; tok.type_ != tokenType_t::UNDF_T_; tok = tokensP_ [++tokId])
     {
-        tok = tokensP_[tokId];
-
         switch (tok.type_)
         {
 
         case tokenType_t::IDENT_:
-        
+
         {
             token_t nextTok = tokensP_ [++tokId];
             if (nextTok.type_ == tokenType_t::KEYWORD_ &&
@@ -171,37 +241,130 @@ err_t Compiler::firstPass()
         break;
 
         case tokenType_t::KEYWORD_:
-                
-        {
-            if (tok.data_.keywordId_ == keywordId_t::CMD_JEQ_ ||
-                tok.data_.keywordId_ == keywordId_t::CMD_JMP_ ||
-                tok.data_.keywordId_ == keywordId_t::CMD_JGG_   ) ++tokId;
 
-            ++offset;
-        }
-        break;
-
-        case tokenType_t::NUM_:
-        
         {
+            switch (tok.data_.keywordId_)
+            {
+
+            case keywordId_t::CMD_ADD_:
+                tokId += 3;
+                break;
+
+            case keywordId_t::CMD_CMP_:
+                tokId += 2;
+                break;
+
+            case keywordId_t::CMD_JEQ_:
+            case keywordId_t::CMD_JMP_:
+            case keywordId_t::CMD_JGG_:
+                tokId += 1;
+                ++offset;
+                break;
+
+            case keywordId_t::CMD_MOV_:
+            
+            {
+                size_t tokOffset = 0;
+                int number = 0;
+
+                int firstArg = parseMov (tokensP_ + (++tokId), &tokOffset, &number);
+                if (firstArg & ARG_ERR_MASK_ || ((firstArg & ARG_NUM_MASK_) && !(firstArg & ARG_MEM_MASK_)))
+                    return err_t::SYNT_ERR_;
+
+                tokId += tokOffset;
+
+                int secondArg = parseMov (tokensP_ + tokId, &tokOffset, &number);
+                if (secondArg & ARG_ERR_MASK_)
+                    return err_t::SYNT_ERR_;
+
+                tokId += tokOffset - 1;
+
+                offset += 2;
+            }
+            break;
+
+            default:
+                return err_t::SYNT_ERR_;
+
+            }
+
             ++offset;
         }
         break;
 
         default:
+
+        {
             assert (0);
+        }
         
         }
-
     }
 
+    return err_t::OK_;
+}
+
+int Compiler::parseMov( token_t const * args, size_t * offset, int * number )
+{
+    token_t ftTok = args [0];
+    token_t sdTok = args [1];
+    token_t trTok = args [2];
+
+    *offset = 1;
+    *number = ftTok.data_.number_;
+
+    if (ftTok.type_ == tokenType_t::KEYWORD_)
+    {
+        int regId = getRegId (ftTok);
+
+        if (regId == BAD_REG_ID_)
+        {
+            *offset = 3;
+            *number = sdTok.data_.number_;
+
+            if (ftTok.data_.keywordId_ != keywordId_t::TR_LBR_  ||
+                trTok.type_            != tokenType_t::KEYWORD_ ||
+                trTok.data_.keywordId_ != keywordId_t::TR_RBR_)
+
+                return ARG_ERR_MASK_;
+
+            if (sdTok.type_ == tokenType_t::NUM_)
+                return ARG_MEM_MASK_ | ARG_NUM_MASK_;
+
+            regId = getRegId (sdTok);
+
+            if (regId != BAD_REG_ID_)
+                return ARG_MEM_MASK_ | regId;
+
+            return ARG_ERR_MASK_;
+        }
+
+        else return regId;
+    }
+
+    if (ftTok.type_ == tokenType_t::NUM_)
+        return ARG_NUM_MASK_;
+
+    return ARG_ERR_MASK_;
+}
+
+int Compiler::getRegId( token_t token )
+{
+    if (token.type_ != tokenType_t::KEYWORD_)
+        return BAD_REG_ID_;
+
+    if (token.data_.keywordId_ >= keywordId_t::R00_ &&
+        token.data_.keywordId_ <= keywordId_t::R1F_)
+        return (int) token.data_.keywordId_ - (int) keywordId_t::R00_;
+
+    return BAD_REG_ID_;
 }
 
 int Compiler::getLabel( tokenLocation_t nameP )
 {
     label_t label = labelsP_[0];
 
-    for (int labelId = 0; label.binOffset_ != BAD_TOKEN_ID_; ++labelId)
+    for (int labelId = 0; label.tokenId_ != BAD_TOKEN_ID_; label = labelsP_ [++labelId])
     {
         if (!nameCmp (nameP, tokensP_ [label.tokenId_].location_))
             return labelId;
@@ -209,9 +372,6 @@ int Compiler::getLabel( tokenLocation_t nameP )
 
     return BAD_TOKEN_ID_;
 }
-
-/* end of name symbols */
-static const char EON_SYMBOLS_[] = ": \n\r";
 
 /* to check end of name */
 static bool checkEON( const char symbol );
@@ -242,8 +402,11 @@ int Compiler::nameCmp( tokenLocation_t ftNameP, tokenLocation_t sdNameP )
     return 0;
 }
 
+/* end of name symbols */
+static const char EON_SYMBOLS_[] = ": \n\r";
+
 static bool checkEON( const char symbol )
-{       
+{
     for (size_t symbolId = 0; symbolId < sizeof (EON_SYMBOLS_); ++symbolId)
         if (symbol == EON_SYMBOLS_[symbolId])
             return true;

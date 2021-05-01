@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
     if (error != err_t::OK_)
     {
         printf ("compilation error!" "\n"
-                "error code = %d" "\n", error);
+                "error code = %d" "\n", (int)error);
     }
 
     return 0;
