@@ -1,24 +1,24 @@
 
+/* cmds codes */
+`define MOV_CODE_ 77
+`define ADD_CODE_ 65
+`define CMP_CODE_ 67
+
+`define JMP_CODE_ 74
+`define JEQ_CODE_ 69
+`define JGG_CODE_ 71
+
 module Decoder (
 
     /* cmd to decode */
-    input wire  [7:0] cmdId;
+    input wire  [7:0] cmdId     ,
 
     /* size of decoded cmd */
-    output reg  [1:0] cmdSize;
+    output reg  [1:0] cmdSize   ,
     /* only one flag should be 1 - executable cmd flag */
-    output reg  cmdsFlags [5:0];
+    output reg  [5:0] cmdsFlags
 
 );
-
-    /* cmds codes */
-    `MOV_CODE_ 77
-    `ADD_CODE_ 65
-    `CMP_CODE_ 67
-
-    `JMP_CODE_ 74
-    `JEQ_CODE_ 69
-    `JGG_CODE_ 71
 
     /* cmd decode */
     always @(*) begin
