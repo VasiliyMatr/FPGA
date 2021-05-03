@@ -15,7 +15,7 @@ LOOP1:
             MOV   R03     [ R01 ]
             MOV   R04     [ R02 ]
 
-            CMP R03 R04
+            CMP R04 R03
             JGG LOOP2E
 
             MOV   R0F     [ R01 ]
@@ -30,5 +30,11 @@ LOOP1:
             JMP LOOP2
 LOOP1E:
             ADD R01 R11 R01
+
             CMP R01 R00
-            JEQ LOOP1
+            JEQ END
+            JMP LOOP1
+
+END:
+            JMP END
+            JMP END

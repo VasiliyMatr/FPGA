@@ -10,8 +10,9 @@ module Executor   #(
 
 )
 (
-
-    /* execution flag - posege used for work */
+    /* clock */
+    input wire CLK_                                         ,
+    /* execution flag */
     input wire EXEC_FL_                                     ,
 
     /* cmds flags */
@@ -20,11 +21,13 @@ module Executor   #(
     input wire [WORD_SIZE_ * 3 - 1 : 00] CMD_ARG_           ,
 
     /* ready to execute next cmd flag */
-    output reg READY_FL_ = 1                                ,
+    output reg READY_FL_ = 0                                ,
     /* need to change addr flag */
     output reg JMP_FL_ = 0                                  ,
     /* new execution addr offset */
-    output wire [ADDR_SIZE_ - 1 : 00] NEW_EXEC_ADDR_OFF_
+    output wire [ADDR_SIZE_ - 1 : 00] NEW_EXEC_ADDR_OFF_    ,
+
+    output wire [WORD_SIZE_ * 4 - 1 : 00] DUMP_
 
 );
 
@@ -37,7 +40,11 @@ module Executor   #(
     wire JEQ_CFL_ = CMD_FL_ [1 : 1];
     wire JGG_CFL_ = CMD_FL_ [0 : 0];
 
-  /* MOV MODIFIERS */
+
+  /* JMP ADDR */
+    assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [WORD_SIZE_ * 2 - 1 : WORD_SIZE_];
+
+  /* MOV ARGS STUFF */
     /* WRITE PART */
     wire [31 :  00] WRITE_NUM_ = CMD_ARG_ [63 : 32]; /* write part number */
     wire [07 :  00] WRITE_REG_ = CMD_ARG_ [15 : 08]; /* write part register id */
@@ -51,8 +58,8 @@ module Executor   #(
     wire READ_MEM_MODE_ = CMD_ARG_ [29 : 29]; /* reading from memory */
     /* read mode for case constr */
     wire [01 : 00] READ_MODE_;
-        assign READ_MODE_ [0] = READ_MEM_MODE_;
-        assign READ_MODE_ [1] = READ_NUM_MODE_;
+        assign READ_MODE_ [1] = READ_MEM_MODE_;
+        assign READ_MODE_ [0] = READ_NUM_MODE_;
 
   /* CMP FLAGS */
     /* cmp equal flag */
@@ -63,17 +70,27 @@ module Executor   #(
   /* REGISTERS */
     reg [WORD_SIZE_ - 1 : 00] registers [31 : 00];
 
-    wire [WORD_SIZE_ - 1 : 00] tmp = registers [2];
-
   /* RAM */
     reg [WORD_SIZE_ - 1 : 00] memory [WORDS_NUM_ - 1 : 00];
 
-  /* REGS & MEM WRITE STUFF */
+  /* DEBUG STUFF */
+    assign DUMP_ [31  : 00] = memory [0];
+    assign DUMP_ [63  : 32] = memory [1];
+    assign DUMP_ [95  : 64] = memory [2];
+    assign DUMP_ [127 : 96] = memory [3];
+
+    wire [WORD_SIZE_ - 1 : 00] reg0 = registers [0];
+    wire [WORD_SIZE_ - 1 : 00] reg1 = registers [1];
+    wire [WORD_SIZE_ - 1 : 00] reg2 = registers [2];
+    wire [WORD_SIZE_ - 1 : 00] reg3 = registers [3];
+    wire [WORD_SIZE_ - 1 : 00] reg4 = registers [4];
+
+  /* REGS & MEM WRITES STUFF */
     /* write flags */
     reg regWrFlag = 0;
     reg memWrFlag = 0;
 
-    /* write tmp buffs */
+    /* read tmp buffs */
     reg [WORD_SIZE_ - 1 : 00] regWrBuff = 0;
     reg [WORD_SIZE_ - 1 : 00] memWrBuff = 0;
 
@@ -81,6 +98,7 @@ module Executor   #(
     reg [04 : 00] regWrId = 0;
     reg [ADDR_SIZE_ - 1 : 00] memWrAddr = 0;
 
+  /* REGS & FLAGS & MEM INIT */
     initial begin
 
         eqFlag = 0;
@@ -97,7 +115,7 @@ module Executor   #(
 
         registers [00] = 0;
         registers [01] = 0;
-        registers [02] = 2;
+        registers [02] = 0;
         registers [03] = 0;
         registers [04] = 0;
         registers [05] = 0;
@@ -129,41 +147,38 @@ module Executor   #(
         registers [31] = 0;
 
         $readmemh ("MEM.txt", memory);
+
     end
 
   /* READY FLAG STUFF */
-        always @(posedge EXEC_FL_ or posedge regWrFlag or posedge memWrFlag) begin
+        always @(negedge CLK_) begin
 
-            if (JMP_CFL_ || JEQ_CFL_  || JGG_CFL_ || CMP_CFL_ ||
-                     regWrFlag || memWrFlag)
-                READY_FL_ <= 1;
+            if (EXEC_FL_ && ~READY_FL_) begin
+                READY_FL_ <=
+                JMP_CFL_ || JEQ_CFL_  || JGG_CFL_ || CMP_CFL_ || regWrFlag || memWrFlag;
+            end
 
-            else
-                READY_FL_ <= 0;
+            else READY_FL_ <= 0;
 
         end
 
   /* JUMPS STUFF */
-    /* addr read */
-        assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [WORD_SIZE_ * 2 - 1 : WORD_SIZE_];
 
     /* addr chng flag control */
-        always @(posedge EXEC_FL_) begin
+        always @(negedge CLK_) begin
 
-            if (JMP_CFL_ || (JEQ_CFL_ && eqFlag) || (JGG_CFL_ && ggFlag)) begin
-                JMP_FL_ <= 1;
-            end
+            if (EXEC_FL_)
+                JMP_FL_ <= JMP_CFL_ || (JEQ_CFL_ && eqFlag) || (JGG_CFL_ && ggFlag);
 
-            else begin
+            else
                 JMP_FL_ <= 0;
-            end
-            
+
         end
 
   /* CMP STUFF */
     /* cmp gg flag control */
-        always @(posedge EXEC_FL_) begin
-        if (CMP_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && CMP_CFL_) begin
 
             if (registers [CMD_ARG_ [15 : 08]] > registers [CMD_ARG_ [23 : 16]]) begin
                 ggFlag <= 1;
@@ -177,8 +192,8 @@ module Executor   #(
         end
 
     /* cmp eq flag control */
-        always @(posedge EXEC_FL_) begin
-        if (CMP_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && CMP_CFL_) begin
 
             if (registers [CMD_ARG_ [15 : 08]] === registers [CMD_ARG_ [23 : 16]]) begin
                 eqFlag <= 1;
@@ -193,8 +208,8 @@ module Executor   #(
 
   /* ADD & MOV STUFF */
     /* regs write stuff */
-        always @(posedge EXEC_FL_) begin
-        if (ADD_CFL_ || MOV_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && (ADD_CFL_ || MOV_CFL_)) begin
 
             if (ADD_CFL_)
                 regWrBuff <= registers [CMD_ARG_ [15 : 08]] +
@@ -205,7 +220,7 @@ module Executor   #(
 
                     if (READ_MODE_ === 2'b00) regWrBuff <= registers [READ_REG_]; else
                     if (READ_MODE_ === 2'b01) regWrBuff <= READ_NUM_; else
-                    if (READ_MODE_ === 2'b10) regWrBuff <= memory  [READ_REG_]; else
+                    if (READ_MODE_ === 2'b10) regWrBuff <= memory  [registers [READ_REG_]]; else
                     if (READ_MODE_ === 2'b11) regWrBuff <= memory  [READ_NUM_];
 
                 end
@@ -213,8 +228,8 @@ module Executor   #(
         end
         end
 
-        always @(posedge EXEC_FL_) begin
-        if (ADD_CFL_ || MOV_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && (ADD_CFL_ || MOV_CFL_)) begin
 
             if (ADD_CFL_)
                 regWrId <= CMD_ARG_ [31 : 24];
@@ -226,14 +241,14 @@ module Executor   #(
         end
 
       /* mem write stuff */
-        always @(posedge EXEC_FL_) begin
-        if (MOV_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && MOV_CFL_) begin
 
             if (WRITE_MEM_MODE_) begin
 
                 if (READ_MODE_ === 2'b00) memWrBuff <= registers [READ_REG_]; else
                 if (READ_MODE_ === 2'b01) memWrBuff <= READ_NUM_; else
-                if (READ_MODE_ === 2'b10) memWrBuff <= memory  [READ_REG_]; else
+                if (READ_MODE_ === 2'b10) memWrBuff <= memory  [registers [READ_REG_]]; else
                 if (READ_MODE_ === 2'b11) memWrBuff <= memory  [READ_NUM_];
 
             end
@@ -241,8 +256,8 @@ module Executor   #(
         end
         end
 
-        always @(posedge EXEC_FL_) begin
-        if (MOV_CFL_) begin
+        always @(negedge CLK_) begin
+        if (EXEC_FL_ && MOV_CFL_) begin
 
             if (WRITE_MEM_MODE_) begin
 
@@ -258,40 +273,36 @@ module Executor   #(
         end
 
     /* update mem & reg write flags */
-        always @(posedge EXEC_FL_) begin
+        always @(negedge CLK_) begin
 
-            regWrFlag <= ADD_CFL_ || (MOV_CFL_ && ~WRITE_MEM_MODE_);
-
-        end
-
-        always @(negedge EXEC_FL_) begin
-
-            regWrFlag <= 0;
+            if (~regWrFlag && ~READY_FL_)
+                regWrFlag <= ADD_CFL_ || (MOV_CFL_ && ~WRITE_MEM_MODE_);
+            else
+                regWrFlag <= 0;
 
         end
 
-        always @(posedge EXEC_FL_) begin
+        always @(negedge CLK_) begin
 
-            memWrFlag <= MOV_CFL_ && WRITE_MEM_MODE_;
-
-        end
-
-        always @(negedge EXEC_FL_) begin
-
-            memWrFlag <= 0;
+            if (~memWrFlag && ~READY_FL_)
+                memWrFlag <= MOV_CFL_ && WRITE_MEM_MODE_;
+            else
+                memWrFlag <= 0;
 
         end
 
     /* reg & mem write stuff */
-        always @(posedge memWrFlag) begin
+        always @(negedge CLK_) begin
 
-            memory [memWrAddr] <= memWrBuff;
+            if (memWrFlag)
+                memory [memWrAddr] <= memWrBuff;
 
         end
 
-        always @(posedge regWrFlag) begin
+        always @(negedge CLK_) begin
 
-            registers [regWrId] <= regWrBuff;
+            if (regWrFlag)
+                registers [regWrId] <= regWrBuff;
 
         end
 

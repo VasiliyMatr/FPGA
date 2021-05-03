@@ -20,23 +20,40 @@ module testbench ();
 
     wire [31 : 00] newAddrOff;
     wire [95 : 00] cmdInfo;
+    wire [95 : 00] cmdInfoReversed;
+
+    genvar i;
+
+    generate
+        for (i = 0; i < 3; i = i + 1) begin
+
+            assign cmdInfoReversed [07 + i * 32 : 00 + i * 32] = cmdInfo [31 + i * 32 : 24 + i * 32];
+            assign cmdInfoReversed [15 + i * 32 : 08 + i * 32] = cmdInfo [23 + i * 32 : 16 + i * 32];
+            assign cmdInfoReversed [23 + i * 32 : 16 + i * 32] = cmdInfo [15 + i * 32 : 08 + i * 32];
+            assign cmdInfoReversed [31 + i * 32 : 24 + i * 32] = cmdInfo [07 + i * 32 : 00 + i * 32];
+
+        end
+    endgenerate
+
 
     wire [05 : 00] cmdFlags;
 
     wire exec;
 
+    wire [127 : 00] DUMP_;
+
 /* testable modules */
 
 
-    Executor executor (.EXEC_FL_ (exec), .CMD_FL_ (cmdFlags), .CMD_ARG_ (cmdInfo),
-                       .READY_FL_ (readNextCmdFlag), .JMP_FL_ (addrChangeFlag),
-                       .NEW_EXEC_ADDR_OFF_ (newAddrOff));
+    Executor executor (.CLK_ (clk), .EXEC_FL_ (exec), .CMD_FL_ (cmdFlags),
+                       .CMD_ARG_ (cmdInfoReversed), .READY_FL_ (readNextCmdFlag),
+                       .JMP_FL_ (addrChangeFlag), .NEW_EXEC_ADDR_OFF_ (newAddrOff), .DUMP_ (DUMP_));
 
-    Fetcher fetcher (.clk (clk), .prevCmdSize (prevCmdSize), .readNextCmdFlag (readNextCmdFlag),
+    Fetcher fetcher (.clk (clk), .prevCmdSize (prevCmdSize), .readyFL (readNextCmdFlag),
                      .addrChangeFlag (addrChangeFlag), .newAddrOff (newAddrOff),
                      .cmdInfo (cmdInfo), .exec (exec));
 
-    Decoder decoder (.cmdId (cmdInfo [07 : 00]), .cmdSize (prevCmdSize),
+    Decoder decoder (.cmdId (cmdInfoReversed [07 : 00]), .cmdSize (prevCmdSize),
                      .cmdsFlags (cmdFlags));
 
 /* test settings */
@@ -44,7 +61,7 @@ module testbench ();
 
         $dumpvars;
         $display ("Testing ClockDomainCrossing.v...");
-        #200 $finish;
+        #2000 $finish;
 
     end
 

@@ -17,15 +17,15 @@ module Fetcher  #(
 (
     /* clk */
     input wire clk                              ,
+    /* to know when executor need next cmd */
+    input wire readyFL                 ,
 
     /* to know next cmd addr */
-    input wire  [1:0] prevCmdSize               ,
-    /* to know when executor need next cmd */
-    input wire  readNextCmdFlag                 ,
+    input wire [1:0] prevCmdSize               ,
     /* to know if fetcher should change execution addr */
-    input wire  addrChangeFlag                  ,
+    input wire addrChangeFlag                  ,
     /* new execution addr offset */
-    input wire  [ADDR_SIZE_ - 1:0] newAddrOff   ,
+    input wire [ADDR_SIZE_ - 1:0] newAddrOff   ,
 
     /* cmd info for executor & decoder */
     output wire [(WORD_SIZE_ * 3) - 1:0] cmdInfo,
@@ -51,7 +51,15 @@ module Fetcher  #(
 
                 CS (.addr (RIP), .value (cmdInfo));
 
-    always @(posedge readNextCmdFlag) begin
+    always @(posedge clk) begin
+        if (~readyFL && ~exec)
+            exec <= 1;
+        if (readyFL)
+            exec <= 0;
+    end
+
+    always @(posedge clk) begin
+    if (readyFL) begin
 
         if (addrChangeFlag)
             RIP <= RIP + newAddrOff;
@@ -60,19 +68,6 @@ module Fetcher  #(
             RIP <= RIP + prevCmdSize;
 
     end
-
-    always @(posedge clk) begin
-
-        if (readNextCmdFlag)
-            exec <= 1;
-
-    end
-
-    always @(negedge clk) begin
-
-        if (readNextCmdFlag)
-            exec <= 0;
-
     end
 
 endmodule
