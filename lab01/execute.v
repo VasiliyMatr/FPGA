@@ -1,6 +1,4 @@
 
-`include "memory.v"
-
 module Executor   #(
 
     /* words size in bits */
@@ -65,7 +63,7 @@ module Executor   #(
   /* REGISTERS */
     reg [WORD_SIZE_ - 1 : 00] registers [31 : 00];
 
-    wire [WORD_SIZE_ - 1 : 00] tmp = registers [1];
+    wire [WORD_SIZE_ - 1 : 00] tmp = registers [2];
 
   /* RAM */
     reg [WORD_SIZE_ - 1 : 00] memory [WORDS_NUM_ - 1 : 00];
@@ -99,7 +97,7 @@ module Executor   #(
 
         registers [00] = 0;
         registers [01] = 0;
-        registers [02] = 0;
+        registers [02] = 2;
         registers [03] = 0;
         registers [04] = 0;
         registers [05] = 0;
@@ -130,7 +128,7 @@ module Executor   #(
         registers [30] = 0;
         registers [31] = 0;
 
-        $readmemh ("memZeros", memory);
+        $readmemh ("MEM.txt", memory);
     end
 
   /* READY FLAG STUFF */

@@ -11,12 +11,12 @@
 module Decoder (
 
     /* cmd to decode */
-    input wire  [7:0] cmdId     ,
+    input wire  [7:0] cmdId         ,
 
     /* size of decoded cmd */
-    output reg  [1:0] cmdSize   ,
+    output reg  [1:0] cmdSize = 0   ,
     /* only one flag should be 1 - executable cmd flag */
-    output reg  [5:0] cmdsFlags
+    output reg  [5:0] cmdsFlags = 0
 
 );
 

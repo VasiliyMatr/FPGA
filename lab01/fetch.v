@@ -11,10 +11,12 @@ module Fetcher  #(
     /* num or words in this memory block */
     parameter WORDS_NUM_            = 1024  ,
     /* code segment init file name */
-    parameter IN_NAME_              = "code"
+    parameter IN_NAME_              = "CODE.txt"
 
 )
 (
+    /* clk */
+    input wire clk                              ,
 
     /* to know next cmd addr */
     input wire  [1:0] prevCmdSize               ,
@@ -26,12 +28,22 @@ module Fetcher  #(
     input wire  [ADDR_SIZE_ - 1:0] newAddrOff   ,
 
     /* cmd info for executor & decoder */
-    output wire [(WORD_SIZE_ * 3) - 1:0] cmdInfo
+    output wire [(WORD_SIZE_ * 3) - 1:0] cmdInfo,
+
+    /* execute flag */
+    output reg exec
 
 );
 
     /* instruction pointer */
-    reg [ADDR_SIZE_ - 1:0] RIP = 0;
+    reg [ADDR_SIZE_ - 1:0] RIP;
+
+    initial begin
+
+        RIP = 0;
+        exec = 0;
+
+    end
 
     /* code segment reading stuff */
     CodeSegment #(.WORD_SIZE_ (WORD_SIZE_), .ADDR_SIZE_ (ADDR_SIZE_),
@@ -46,6 +58,20 @@ module Fetcher  #(
 
         else
             RIP <= RIP + prevCmdSize;
+
+    end
+
+    always @(posedge clk) begin
+
+        if (readNextCmdFlag)
+            exec <= 1;
+
+    end
+
+    always @(negedge clk) begin
+
+        if (readNextCmdFlag)
+            exec <= 0;
 
     end
 
