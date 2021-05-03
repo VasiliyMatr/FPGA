@@ -4,10 +4,10 @@
 module testbench ();
 
 /* just some test environment */
-    reg clk = 1'b0;
+    reg clk = 1'b1;
 
-    reg [05 : 00] cmdFlags = 6'b001000;
-    reg [95 : 00] cmdArgs = 96'b000000000000100000000100;
+    wire [05 : 00] cmdFlags = 6'b100000;
+    reg [95 : 00] cmdArgs = 96'h00000FFF00000FFF00200189;
 
     wire readyFl;
     wire jmpFL;
@@ -19,7 +19,7 @@ module testbench ();
     end
 
 /* testable module */
-    Executor executor (.CLK_ (clk), .CMD_FL_ (cmdFlags), .CMD_ARG_ (cmdArgs),
+    Executor executor (.EXEC_FL_ (clk), .CMD_FL_ (cmdFlags), .CMD_ARG_ (cmdArgs),
                        .READY_FL_ (readyFl), .JMP_FL_ (jmpFL),
                        .NEW_EXEC_ADDR_OFF_ (newAddrOff));
 
