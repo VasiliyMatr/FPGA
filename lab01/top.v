@@ -16,18 +16,16 @@ module top(
     wire [95 : 00] cmdArgs;
     wire [95 : 00] cmdArgsRev;
 
-    genvar i;
+    genvar wordId;
 
-    generate
-        for (i = 0; i < 3; i = i + 1) begin : reverseGen
+    generate for (wordId = 0; wordId < 3; wordId = wordId + 1) begin : reverseGen
 
-            assign cmdArgsRev [07 + i * 32 : 00 + i * 32] = cmdArgs [31 + i * 32 : 24 + i * 32];
-            assign cmdArgsRev [15 + i * 32 : 08 + i * 32] = cmdArgs [23 + i * 32 : 16 + i * 32];
-            assign cmdArgsRev [23 + i * 32 : 16 + i * 32] = cmdArgs [15 + i * 32 : 08 + i * 32];
-            assign cmdArgsRev [31 + i * 32 : 24 + i * 32] = cmdArgs [07 + i * 32 : 00 + i * 32];
+        assign cmdArgsRev [07 + wordId * 32 : 00 + wordId * 32] = cmdArgs [31 + wordId * 32 : 24 + wordId * 32];
+        assign cmdArgsRev [15 + wordId * 32 : 08 + wordId * 32] = cmdArgs [23 + wordId * 32 : 16 + wordId * 32];
+        assign cmdArgsRev [23 + wordId * 32 : 16 + wordId * 32] = cmdArgs [15 + wordId * 32 : 08 + wordId * 32];
+        assign cmdArgsRev [31 + wordId * 32 : 24 + wordId * 32] = cmdArgs [07 + wordId * 32 : 00 + wordId * 32];
 
-        end
-    endgenerate
+    end endgenerate
 
     wire [05 : 00] cmdFlgs;
 

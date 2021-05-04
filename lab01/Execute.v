@@ -1,4 +1,8 @@
 
+`define _WORD_SIZE 32
+`define _ADDR_SIZE 32
+`define _MEM_SIZE  16
+
 module Executor (
 
     /* clock */
@@ -9,16 +13,16 @@ module Executor (
     /* cmds flags */
     input wire [05 : 00] CMD_FLGS_                            ,
     /* executable cmd args */
-    input wire [32 * 3 - 1 : 00] CMD_ARG_           ,
+    input wire [`_WORD_SIZE * 3 - 1 : 00] CMD_ARG_           ,
 
     /* ready to execute next cmd flag */
     output reg READY_FL_ = 0                                ,
     /* need to change addr flag */
     output reg JMP_FL_ = 0                                  ,
     /* new execution addr offset */
-    output wire [32 - 1 : 00] NEW_EXEC_ADDR_OFF_    ,
+    output wire [`_ADDR_SIZE - 1 : 00] NEW_EXEC_ADDR_OFF_    ,
 
-    output wire [32 * 4 - 1 : 00] DUMP_
+    output wire [`_WORD_SIZE * 4 - 1 : 00] DUMP_
 
 );
 
@@ -33,21 +37,22 @@ module Executor (
 
 
   /* JMP ADDR */
-    assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [32 * 2 - 1 : 32];
+    assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [63 : 32];
 
   /* MOV ARGS STUFF */
     /* WRITE PART */
-    wire [31 :  00] WRITE_NUM_ = CMD_ARG_ [63 : 32]; /* write part number */
+    wire [`_WORD_SIZE :  00] WRITE_NUM_ = CMD_ARG_ [63 : 32]; /* write part number */
     wire [07 :  00] WRITE_REG_ = CMD_ARG_ [15 : 08]; /* write part register id */
     wire WRITE_NUM_MODE_ = CMD_ARG_ [16 : 16]; /* using number in write part */
     wire WRITE_MEM_MODE_ = CMD_ARG_ [17 : 17]; /* writing to memory */
 
     /* READ PART */
-    wire [31 : 00] READ_NUM_ = CMD_ARG_ [95 : 64]; /* read part number */
+    wire [`_WORD_SIZE : 00] READ_NUM_ = CMD_ARG_ [95 : 64]; /* read part number */
     wire [07 : 00] READ_REG_ = CMD_ARG_ [27 : 20]; /* read part register */
     wire READ_NUM_MODE_ = CMD_ARG_ [28 : 28]; /* using number in read part */
     wire READ_MEM_MODE_ = CMD_ARG_ [29 : 29]; /* reading from memory */
-    /* read mode for case constr */
+
+    /* READ MODE */
     wire [01 : 00] READ_MODE_;
         assign READ_MODE_ [1] = READ_MEM_MODE_;
         assign READ_MODE_ [0] = READ_NUM_MODE_;
@@ -59,10 +64,10 @@ module Executor (
     reg ggFlag = 0;
 
   /* REGISTERS */
-    reg [32 - 1 : 00] registers [31 : 00];
+    reg [`_WORD_SIZE - 1 : 00] registers [31 : 00];
 
   /* RAM */
-    reg [32 - 1 : 00] memory [4 - 1 : 00];
+    reg [`_WORD_SIZE - 1 : 00] memory [`_MEM_SIZE - 1 : 00];
 
   /* DEBUG STUFF */
     assign DUMP_ [31  : 00] = memory [0];
@@ -76,12 +81,12 @@ module Executor (
     reg memWrFlag = 0;
 
     /* read tmp buffs */
-    reg [32 - 1 : 00] regWrBuff = 0;
-    reg [32 - 1 : 00] memWrBuff = 0;
+    reg [`_WORD_SIZE - 1 : 00] regWrBuff = 0;
+    reg [`_WORD_SIZE - 1 : 00] memWrBuff = 0;
 
     /* reg write id & mem write addr */
     reg [04 : 00] regWrId = 0;
-    reg [32 - 1 : 00] memWrAddr = 0;
+    reg [`_ADDR_SIZE - 1 : 00] memWrAddr = 0;
 
   /* REGS & FLAGS & MEM INIT */
     initial begin
@@ -98,39 +103,7 @@ module Executor (
         regWrId   = 0;
         memWrAddr = 0;
 
-        registers [00] = 0;
-        registers [01] = 0;
-        registers [02] = 0;
-        registers [03] = 0;
-        registers [04] = 0;
-        registers [05] = 0;
-        registers [06] = 0;
-        registers [07] = 0;
-        registers [08] = 0;
-        registers [09] = 0;
-        registers [10] = 0;
-        registers [11] = 0;
-        registers [12] = 0;
-        registers [13] = 0;
-        registers [14] = 0;
-        registers [15] = 0;
-        registers [16] = 0;
-        registers [17] = 0;
-        registers [18] = 0;
-        registers [19] = 0;
-        registers [20] = 0;
-        registers [21] = 0;
-        registers [22] = 0;
-        registers [23] = 0;
-        registers [24] = 0;
-        registers [25] = 0;
-        registers [26] = 0;
-        registers [27] = 0;
-        registers [28] = 0;
-        registers [29] = 0;
-        registers [30] = 0;
-        registers [31] = 0;
-
+        $readmemh ("MEM.txt", registers);
         $readmemh ("MEM.txt", memory);
 
     end
