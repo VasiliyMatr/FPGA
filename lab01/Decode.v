@@ -1,13 +1,4 @@
 
-/* cmds codes */
-`define MOV_CODE_ 77
-`define ADD_CODE_ 65
-`define CMP_CODE_ 67
-
-`define JMP_CODE_ 74
-`define JEQ_CODE_ 69
-`define JGG_CODE_ 71
-
 module Decoder (
 
     /* cmd to decode */
@@ -24,13 +15,13 @@ module Decoder (
     always @(*) begin
         case (CMD_CODE_)
 
-            `MOV_CODE_: CMD_FLGS_ = 6'b100000;
-            `ADD_CODE_: CMD_FLGS_ = 6'b010000;
-            `CMP_CODE_: CMD_FLGS_ = 6'b001000;
+            77: CMD_FLGS_ = 6'b100000;
+            65: CMD_FLGS_ = 6'b010000;
+            67: CMD_FLGS_ = 6'b001000;
 
-            `JMP_CODE_: CMD_FLGS_ = 6'b000100;
-            `JEQ_CODE_: CMD_FLGS_ = 6'b000010;
-            `JGG_CODE_: CMD_FLGS_ = 6'b000001;
+            74: CMD_FLGS_ = 6'b000100;
+            69: CMD_FLGS_ = 6'b000010;
+            71: CMD_FLGS_ = 6'b000001;
 
         endcase
     end
@@ -39,13 +30,13 @@ module Decoder (
     always @(*) begin
         case (CMD_CODE_)
 
-            `MOV_CODE_: CMD_SIZE_ = 2'b11;
-            `ADD_CODE_: CMD_SIZE_ = 2'b01;
-            `CMP_CODE_: CMD_SIZE_ = 2'b01;
+            77: CMD_SIZE_ = 2'b11;
+            65: CMD_SIZE_ = 2'b01;
+            67: CMD_SIZE_ = 2'b01;
 
-            `JMP_CODE_: CMD_SIZE_ = 2'b10;
-            `JEQ_CODE_: CMD_SIZE_ = 2'b10;
-            `JGG_CODE_: CMD_SIZE_ = 2'b10;
+            74: CMD_SIZE_ = 2'b10;
+            69: CMD_SIZE_ = 2'b10;
+            71: CMD_SIZE_ = 2'b10;
 
         endcase
     end

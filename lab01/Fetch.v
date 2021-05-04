@@ -1,20 +1,7 @@
 
-`include "Memory.v"
-
 /* getting new cmd & args from memory */
-module Fetcher  #(
+module Fetcher  (
 
-    /* words size in bits */
-    parameter WORD_SIZE_            = 32    ,
-    /* addr size */
-    parameter ADDR_SIZE_            = 32    ,
-    /* num or words in this memory block */
-    parameter WORDS_NUM_            = 64    ,
-    /* code segment init file name */
-    parameter IN_NAME_              = "CODE.txt"
-
-)
-(
     /* clk */
     input wire CLK_                              ,
     /* to know when executor need next cmd */
@@ -25,10 +12,10 @@ module Fetcher  #(
     /* to know if fetcher should change execution addr */
     input wire JMP_FL_                  ,
     /* new execution addr offset */
-    input wire [ADDR_SIZE_ - 1 : 00] NEW_EXEC_ADDR_OFFSET_   ,
+    input wire [32 - 1 : 00] NEW_EXEC_ADDR_OFFSET_   ,
 
     /* cmd info for executor & decoder */
-    output wire [WORD_SIZE_ * 3 - 1 : 00] CMD_ARGS_,
+    output wire [32 * 3 - 1 : 00] CMD_ARGS_,
 
     /* execute flag */
     output reg EXEC_FL_
@@ -36,7 +23,7 @@ module Fetcher  #(
 );
 
     /* instruction pointer */
-    reg [ADDR_SIZE_ - 1:0] IP;
+    reg [32 - 1:0] IP;
 
     initial begin
 
@@ -46,10 +33,7 @@ module Fetcher  #(
     end
 
     /* code segment reading stuff */
-    CodeSegment #(.WORD_SIZE_ (WORD_SIZE_), .ADDR_SIZE_ (ADDR_SIZE_),
-                  .WORDS_NUM_ (WORDS_NUM_), .IN_NAME_ (IN_NAME_))
-
-                CS (.addr (IP), .value (CMD_ARGS_));
+    CodeSegment CS (.addr (IP), .value (CMD_ARGS_));
 
     always @(posedge CLK_) begin
 

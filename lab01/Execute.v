@@ -1,15 +1,6 @@
 
-module Executor   #(
+module Executor (
 
-    /* words size in bits */
-    parameter WORD_SIZE_            = 32    ,
-    /* addr size */
-    parameter ADDR_SIZE_            = 32    ,
-    /* num or words in RAM memory block */
-    parameter WORDS_NUM_            = 4
-
-)
-(
     /* clock */
     input wire CLK_                                         ,
     /* execution flag */
@@ -18,16 +9,16 @@ module Executor   #(
     /* cmds flags */
     input wire [05 : 00] CMD_FLGS_                            ,
     /* executable cmd args */
-    input wire [WORD_SIZE_ * 3 - 1 : 00] CMD_ARG_           ,
+    input wire [32 * 3 - 1 : 00] CMD_ARG_           ,
 
     /* ready to execute next cmd flag */
     output reg READY_FL_ = 0                                ,
     /* need to change addr flag */
     output reg JMP_FL_ = 0                                  ,
     /* new execution addr offset */
-    output wire [ADDR_SIZE_ - 1 : 00] NEW_EXEC_ADDR_OFF_    ,
+    output wire [32 - 1 : 00] NEW_EXEC_ADDR_OFF_    ,
 
-    output wire [WORD_SIZE_ * 4 - 1 : 00] DUMP_
+    output wire [32 * 4 - 1 : 00] DUMP_
 
 );
 
@@ -42,7 +33,7 @@ module Executor   #(
 
 
   /* JMP ADDR */
-    assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [WORD_SIZE_ * 2 - 1 : WORD_SIZE_];
+    assign NEW_EXEC_ADDR_OFF_ = CMD_ARG_ [32 * 2 - 1 : 32];
 
   /* MOV ARGS STUFF */
     /* WRITE PART */
@@ -68,10 +59,10 @@ module Executor   #(
     reg ggFlag = 0;
 
   /* REGISTERS */
-    reg [WORD_SIZE_ - 1 : 00] registers [31 : 00];
+    reg [32 - 1 : 00] registers [31 : 00];
 
   /* RAM */
-    reg [WORD_SIZE_ - 1 : 00] memory [WORDS_NUM_ - 1 : 00];
+    reg [32 - 1 : 00] memory [4 - 1 : 00];
 
   /* DEBUG STUFF */
     assign DUMP_ [31  : 00] = memory [0];
@@ -85,12 +76,12 @@ module Executor   #(
     reg memWrFlag = 0;
 
     /* read tmp buffs */
-    reg [WORD_SIZE_ - 1 : 00] regWrBuff = 0;
-    reg [WORD_SIZE_ - 1 : 00] memWrBuff = 0;
+    reg [32 - 1 : 00] regWrBuff = 0;
+    reg [32 - 1 : 00] memWrBuff = 0;
 
     /* reg write id & mem write addr */
     reg [04 : 00] regWrId = 0;
-    reg [ADDR_SIZE_ - 1 : 00] memWrAddr = 0;
+    reg [32 - 1 : 00] memWrAddr = 0;
 
   /* REGS & FLAGS & MEM INIT */
     initial begin
