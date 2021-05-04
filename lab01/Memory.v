@@ -27,7 +27,7 @@ module CodeSegment #(
 
     /* code read from file */
     initial begin
-        $readmemh (IN_NAME_, MEM);
+        $readmemh ("CODE.txt", MEM);
     end
 
     /* data read from code segment */

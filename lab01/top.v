@@ -4,6 +4,7 @@
 `include "Decode.v"
 `include "DisplayMaster.v"
 `include "Counter.v"
+`include "CODE.txt"
 
 /* just main module
  *
