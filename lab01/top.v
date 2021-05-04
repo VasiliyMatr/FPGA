@@ -1,15 +1,4 @@
 
-`include "Execute.v"
-`include "Fetch.v"
-`include "Decode.v"
-`include "DisplayMaster.v"
-`include "Counter.v"
-`include "CODE.txt"
-
-/* just main module
- *
- */
-
 module top(
     input  wire CLK,
 
@@ -61,7 +50,11 @@ module top(
                      .CMD_FLGS_ (cmdFlgs));
 
 /* sys ticks counter */
-    `COUNTER (CLK, 13, counterVal)
+	reg [13 - 1 : 0] counterVal = 13'b0;
+
+	always @(posedge CLK) begin
+		 counterVal <= counterVal + 13'b1;
+	end
 
 /* clk for display */
     wire         dispClk  = counterVal [12];
