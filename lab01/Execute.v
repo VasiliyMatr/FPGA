@@ -6,7 +6,7 @@ module Executor   #(
     /* addr size */
     parameter ADDR_SIZE_            = 32    ,
     /* num or words in RAM memory block */
-    parameter WORDS_NUM_            = 4096
+    parameter WORDS_NUM_            = 4
 
 )
 (
@@ -16,7 +16,7 @@ module Executor   #(
     input wire EXEC_FL_                                     ,
 
     /* cmds flags */
-    input wire [05 : 00] CMD_FL_                            ,
+    input wire [05 : 00] CMD_FLGS_                            ,
     /* executable cmd args */
     input wire [WORD_SIZE_ * 3 - 1 : 00] CMD_ARG_           ,
 
@@ -32,13 +32,13 @@ module Executor   #(
 );
 
   /* CMDS FLAGS */
-    wire MOV_CFL_ = CMD_FL_ [5 : 5];
-    wire ADD_CFL_ = CMD_FL_ [4 : 4];
-    wire CMP_CFL_ = CMD_FL_ [3 : 3];
+    wire MOV_CFL_ = CMD_FLGS_ [5 : 5];
+    wire ADD_CFL_ = CMD_FLGS_ [4 : 4];
+    wire CMP_CFL_ = CMD_FLGS_ [3 : 3];
 
-    wire JMP_CFL_ = CMD_FL_ [2 : 2];
-    wire JEQ_CFL_ = CMD_FL_ [1 : 1];
-    wire JGG_CFL_ = CMD_FL_ [0 : 0];
+    wire JMP_CFL_ = CMD_FLGS_ [2 : 2];
+    wire JEQ_CFL_ = CMD_FLGS_ [1 : 1];
+    wire JGG_CFL_ = CMD_FLGS_ [0 : 0];
 
 
   /* JMP ADDR */
@@ -78,12 +78,6 @@ module Executor   #(
     assign DUMP_ [63  : 32] = memory [1];
     assign DUMP_ [95  : 64] = memory [2];
     assign DUMP_ [127 : 96] = memory [3];
-
-    wire [WORD_SIZE_ - 1 : 00] reg0 = registers [0];
-    wire [WORD_SIZE_ - 1 : 00] reg1 = registers [1];
-    wire [WORD_SIZE_ - 1 : 00] reg2 = registers [2];
-    wire [WORD_SIZE_ - 1 : 00] reg3 = registers [3];
-    wire [WORD_SIZE_ - 1 : 00] reg4 = registers [4];
 
   /* REGS & MEM WRITES STUFF */
     /* write flags */

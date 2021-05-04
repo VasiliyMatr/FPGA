@@ -3,10 +3,10 @@ iver_test: perfom_test cleanup
 
 perfom_test:
 
-	iverilog testbench.v -o test
-	vvp test
+	iverilog Testbench.v -o Test
+	vvp Test
 	gtkwave dump.vcd
 
 cleanup: perfom_test
-	rm test
+	rm Test
 	rm dump.vcd

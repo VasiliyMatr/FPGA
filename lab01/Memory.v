@@ -7,7 +7,7 @@ module CodeSegment #(
     /* addr size */
     parameter ADDR_SIZE_            = 32    ,
     /* num or words in this memory block */
-    parameter WORDS_NUM_            = 1024  ,
+    parameter WORDS_NUM_            = 64  ,
     /* mem init file name */
     parameter IN_NAME_              = "CODE.txt"
 
