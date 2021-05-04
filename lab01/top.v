@@ -18,45 +18,46 @@ module top(
     output reg DS_A, DS_B, DS_C, DS_D, DS_E, DS_F, DS_G
 );
 
-    wire [1:0] prevCmdSize;
-    wire readNextCmdFlag;
-    wire addrChangeFlag;
+    wire [1:0] cmdSize;
+    wire readyFl;
+    wire jmpFl;
 
-    wire [31 : 00] newAddrOff;
-    wire [95 : 00] cmdInfo;
-    wire [95 : 00] cmdInfoReversed;
+    wire [31 : 00] newExecAddrOff;
+    wire [95 : 00] cmdArgs;
+    wire [95 : 00] cmdArgsRev;
 
     genvar i;
 
     generate
         for (i = 0; i < 3; i = i + 1) begin : reverseGen
 
-            assign cmdInfoReversed [07 + i * 32 : 00 + i * 32] = cmdInfo [31 + i * 32 : 24 + i * 32];
-            assign cmdInfoReversed [15 + i * 32 : 08 + i * 32] = cmdInfo [23 + i * 32 : 16 + i * 32];
-            assign cmdInfoReversed [23 + i * 32 : 16 + i * 32] = cmdInfo [15 + i * 32 : 08 + i * 32];
-            assign cmdInfoReversed [31 + i * 32 : 24 + i * 32] = cmdInfo [07 + i * 32 : 00 + i * 32];
+            assign cmdArgsRev [07 + i * 32 : 00 + i * 32] = cmdArgs [31 + i * 32 : 24 + i * 32];
+            assign cmdArgsRev [15 + i * 32 : 08 + i * 32] = cmdArgs [23 + i * 32 : 16 + i * 32];
+            assign cmdArgsRev [23 + i * 32 : 16 + i * 32] = cmdArgs [15 + i * 32 : 08 + i * 32];
+            assign cmdArgsRev [31 + i * 32 : 24 + i * 32] = cmdArgs [07 + i * 32 : 00 + i * 32];
 
         end
     endgenerate
 
-    wire [05 : 00] cmdFlags;
+    wire [05 : 00] cmdFlgs;
 
-    wire exec;
+    wire execFl;
 
-    wire [127 : 00] DUMP_;
+    wire [127 : 00] dump;
 
 /* testable modules */
 
-    Executor executor (.CLK_ (CLK), .EXEC_FL_ (exec), .CMD_FL_ (cmdFlags),
-                       .CMD_ARG_ (cmdInfoReversed), .READY_FL_ (readNextCmdFlag),
-                       .JMP_FL_ (addrChangeFlag), .NEW_EXEC_ADDR_OFF_ (newAddrOff), .DUMP_ (DUMP_));
+    Executor executor (.CLK_ (CLK), .EXEC_FL_ (execFl), .CMD_FLGS_ (cmdFlgs),
+                       .CMD_ARG_ (cmdArgsRev), .READY_FL_ (readyFl),
+                       .JMP_FL_ (jmpFl), .NEW_EXEC_ADDR_OFF_ (newExecAddrOff),
+                       .DUMP_ (dump));
 
-    Fetcher fetcher (.clk (CLK), .prevCmdSize (prevCmdSize), .readyFL (readNextCmdFlag),
-                     .addrChangeFlag (addrChangeFlag), .newAddrOff (newAddrOff),
-                     .cmdInfo (cmdInfo), .exec (exec));
+    Fetcher fetcher (.CLK_ (CLK), .PREV_CMD_SIZE_ (cmdSize), .READY_FL_ (readyFl),
+                     .JMP_FL_ (jmpFl), .NEW_EXEC_ADDR_OFFSET_ (newExecAddrOff),
+                     .CMD_ARGS_ (cmdArgs), .EXEC_FL_ (execFl));
 
-    Decoder decoder (.cmdId (cmdInfoReversed [07 : 00]), .cmdSize (prevCmdSize),
-                     .cmdsFlags (cmdFlags));
+    Decoder decoder (.CMD_CODE_ (cmdArgsRev [07 : 00]), .CMD_SIZE_ (cmdSize),
+                     .CMD_FLGS_ (cmdFlgs));
 
 /* sys ticks counter */
     `COUNTER (CLK, 13, counterVal)
@@ -68,10 +69,10 @@ module top(
     wire [6:0]   digit1, digit2, digit3, digit4;
 
 /* displays masters */
-    DisplayMaster   masterOf1Digit  (.number (DUMP_ [07  : 00])  , .displayMask (digit1));
-    DisplayMaster   masterOf2Digit  (.number (DUMP_ [39  : 32])  , .displayMask (digit2));
-    DisplayMaster   masterOf3Digit  (.number (DUMP_ [71  : 64])  , .displayMask (digit3));
-    DisplayMaster   masterOf4Digit  (.number (DUMP_ [103 : 96])  , .displayMask (digit4));
+    DisplayMaster   masterOf1Digit  (.number (dump [07  : 00])  , .displayMask (digit1));
+    DisplayMaster   masterOf2Digit  (.number (dump [39  : 32])  , .displayMask (digit2));
+    DisplayMaster   masterOf3Digit  (.number (dump [71  : 64])  , .displayMask (digit3));
+    DisplayMaster   masterOf4Digit  (.number (dump [103 : 96])  , .displayMask (digit4));
 
 /* operating display id */
     reg  [1:0]   dispId = 0;
